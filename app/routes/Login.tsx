@@ -2,17 +2,40 @@ import { useActionData } from "@remix-run/react";
 import React, { useState } from "react";
 import Layout from "~/components/Layout";
 import Textfield from "~/components/Textfield";
-    // Define the structure of the action data
+import { authenticator } from "~/utils/auth.server";
+import { ActionFunction, LoaderFunction } from '@remix-run/node';
+import type { MetaFunction } from "@remix-run/node";
+
+// Define the structure of the action data
 type ActionData = {
-    fields?: {
-      email?: string;
-      password?: string;
-    };
+  fields?: {
+    name?: string;
+    password?: string;
   };
+};
+
+export const meta: MetaFunction = () => {
+  return [{ title: "New Remix App login" }];
+};
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const user = await authenticator.isAuthenticated(request, {
+    successRedirect: "/",
+  })
+  return user
+}
+
+export const action: ActionFunction = async ({ request }) => {
+  return authenticator.authenticate("form", request, {
+    successRedirect: "/",
+    failureRedirect: "/login",
+  });
+};
+
 const login = () => {
   const actionData = useActionData<ActionData>();
   const [formData, setFormData] = useState({
-    email: actionData?.fields?.email || "",
+    name: actionData?.fields?.name || "",
     password: actionData?.fields?.password || "",
   });
 
@@ -20,7 +43,7 @@ const login = () => {
     event: React.ChangeEvent<HTMLInputElement>,
     field: string
   ) => {
-    console.log(field,event.target.value);
+    console.log(field, event.target.value,'coming here');
 
     setFormData((form) => ({ ...form, [field]: event.target.value }));
   };
@@ -31,10 +54,11 @@ const login = () => {
         <form method="POST" className="rounded-2xl bg-white p-6 w-96">
           <h2 className="text-3xl font-extrabold text-black-600 mb-5">Login</h2>
           <Textfield
-            htmlFor="email"
-            label="Email"
-            value={formData.email}
-            onChange={(e) => handleInputChange(e, "email")}
+            htmlFor="name"
+            type="text"
+            label="Name"
+            value={formData.name}
+            onChange={(e) => handleInputChange(e, "name")}
           />
           <Textfield
             htmlFor="password"

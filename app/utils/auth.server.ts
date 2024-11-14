@@ -12,12 +12,13 @@ if (!sessionSecret) {
 const authenticator = new Authenticator<any>(sessionStorage)
 
 const formStrategy = new FormStrategy(async ({form}) => {
-  const email = form.get("email") as string
+  const name = form.get("name") as string
   const password = form.get("password") as string
-
-  const user = await prisma.user.findUnique({
-    where: { email },
+  console.log(name,password,'in auth server')
+  const user = await prisma.user.findFirst({
+    where: { name },
   });
+  
 
   if (!user) {
     console.log("you entered a wrong email")
