@@ -20,10 +20,13 @@ type Weather = {
 };
 function CityCard({ city, removeCity }: CityCardProps) {
   const [weather, setWeather] = useState<Weather | null>(null);
-  const [error, setError] = useState<string | null>(null); // Error state to handle API errors
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true); // Loading state
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+
+    setLoading(true); // Set loading to true when the API request starts
 
     fetch(
       `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city.name}&aqi=no`
@@ -32,14 +35,17 @@ function CityCard({ city, removeCity }: CityCardProps) {
       .then((data) => {
         if (data.error) {
           setError("Weather data unavailable for this city.");
-          setWeather(null); // Ensure weather is set to null in case of error
+          setWeather(null);
         } else {
           setWeather(data);
+          setError(null); // Clear any previous errors
         }
+        setLoading(false); // Set loading to false once the API request completes
       })
       .catch((error) => {
         setError("Unable to fetch weather data. Please try again.");
         console.error("Error fetching weather data:", error);
+        setLoading(false);
       });
   }, [city.name]);
 
@@ -49,13 +55,15 @@ function CityCard({ city, removeCity }: CityCardProps) {
         <h2 className="text-lg font-semibold">{city.name}</h2>
       </div>
 
-      {weather ? (
+      {loading ? (
+        <p className="text-sm text-gray-500">Loading...</p>
+      ) : weather ? (
         <div className="flex items-center space-x-2">
           <p className="text-sm">{weather.current.temp_c}°C</p>
           <p className="text-sm">{weather.current.condition.text}</p>
           <img
             className="w-8 h-8"
-            src={`https:${weather.current.condition.icon}`} // Ensure the icon path starts with 'https:'
+            src={`https:${weather.current.condition.icon}`}
             alt={weather.current.condition.text}
           />
         </div>
@@ -72,5 +80,6 @@ function CityCard({ city, removeCity }: CityCardProps) {
     </div>
   );
 }
+
 
 export default CityCard;

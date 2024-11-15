@@ -1,6 +1,6 @@
 import type { MetaFunction } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { LoaderFunction } from "@remix-run/node";
+import { Form, useLoaderData } from "@remix-run/react";
+import { LoaderFunction, redirect } from "@remix-run/node";
 import { authenticator } from "~/utils/auth.server";
 import { prisma } from "~/utils/prisma.server";
 import CityList from "~/components/CityList";
@@ -9,8 +9,12 @@ import { json, ActionFunction } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Weather app" },
+    {
+      name: "description",
+      content:
+        "Stay updated with accurate and real-time weather forecasts for your location and beyond. Experience a sleek, user-friendly interface designed to keep you informed about current conditions, hourly updates, and weekly predictions.",
+    },
   ];
 };
 
@@ -22,8 +26,9 @@ type LoaderData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const user = await authenticator.isAuthenticated(request);
-
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: "/login",
+  })
   if (!user) {
     return { user: null, cities: [] };
   }
@@ -45,6 +50,12 @@ export let action: ActionFunction = async ({ request }) => {
 
   const formData = new URLSearchParams(await request.text());
   const actionType = formData.get("_action"); // This will tell us whether it's an add or remove action
+
+
+  if (actionType === "logout") {
+    // Remove the session cookie and redirect to the homepage or login page
+    return await authenticator.logout(request,{redirectTo : '/login'})
+  }
 
   if (actionType === "addCity") {
     const cityName = formData.get("cityName");
@@ -93,10 +104,22 @@ export let action: ActionFunction = async ({ request }) => {
 
 function Header({ userName }: { userName: string | undefined }) {
   return (
-    <header className="w-full p-4 bg-blue-600 text-white text-center">
-      <h1 className="text-2xl font-semibold">
-        {`‘Welcome to the weather app, ${userName}`}
+    <header className="w-full p-4 bg-blue-600 text-white flex items-center justify-between">
+      <h1 className="text-2xl font-semibold text-center flex-1">
+        {`Welcome to the weather app, ${userName || "Guest"}`}
       </h1>
+      {userName && (
+        <Form method="POST" className="ml-auto">
+          <button
+            type="submit"
+            name="_action"
+            value="logout"
+            className="bg-red-500 px-4 py-2 text-white rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </Form>
+      )}
     </header>
   );
 }
