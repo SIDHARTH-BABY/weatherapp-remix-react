@@ -5,6 +5,7 @@ import { authenticator } from "~/utils/auth.server";
 import { prisma } from "~/utils/prisma.server";
 import CityList from "~/components/CityList";
 import { City } from "~/components/CItyCard";
+import { json, ActionFunction } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [
@@ -34,6 +35,61 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   return { user, cities };
 };
+// This is the action to add a city to the database
+// Action to handle both adding and removing cities
+export let action: ActionFunction = async ({ request }) => {
+  const user = await authenticator.isAuthenticated(request);
+  if (!user) {
+    return json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const formData = new URLSearchParams(await request.text());
+  const actionType = formData.get("_action"); // This will tell us whether it's an add or remove action
+
+  if (actionType === "addCity") {
+    const cityName = formData.get("cityName");
+    if (!cityName) {
+      return json({ error: "City name is required" }, { status: 400 });
+    }
+    console.log("city ", cityName);
+    try {
+      const city = await prisma.city.create({
+        data: {
+          name: cityName,
+          userId: user.id,
+        },
+      });
+      return json({ city });
+    } catch (error) {
+      return json({ error: "Error adding city" }, { status: 500 });
+    }
+  }
+
+  if (actionType === "removeCity") {
+    const cityName = formData.get("cityName");
+    if (!cityName) {
+      return json(
+        { error: "City name is required for removal" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const city = await prisma.city.deleteMany({
+        where: {
+          userId: user.id,
+          name: cityName,
+        },
+      });
+
+      return json({ city });
+    } catch (error) {
+      return json({ error: "Error removing city" }, { status: 500 });
+    }
+  }
+
+  return json({ error: "Invalid action" }, { status: 400 });
+};
 
 function Header({ userName }: { userName: string | undefined }) {
   return (
@@ -53,16 +109,22 @@ export default function Index() {
       {/* Header at the top */}
       <Header userName={user?.name} />
 
-      {/* Main content centered vertically */}
-      <div className="flex flex-1 items-center justify-center">
-        <main className="flex flex-1 flex-col items-center justify-center">
-          <h2>Your Favorite Cities</h2>
+      {/* Main content below the header */}
+      <div className="flex flex-1 flex-col p-4">
+        {/* Input box for adding new cities */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold mb-2">
+            Add Your Favorite Cities
+          </h2>
           {user ? (
             <CityList cities={cities} />
           ) : (
             <p>Please log in to manage your favorite cities.</p>
           )}
-        </main>
+        </div>
+
+        {/* List of cities */}
+        <div></div>
       </div>
     </div>
   );
