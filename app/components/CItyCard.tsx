@@ -23,8 +23,10 @@ function CityCard({ city, removeCity }: CityCardProps) {
   const [error, setError] = useState<string | null>(null); // Error state to handle API errors
 
   useEffect(() => {
+    const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+
     fetch(
-      `https://api.weatherapi.com/v1/current.json?key=b1a21105e8d94ef3aec80712241511&q=${city.name}&aqi=no`
+      `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city.name}&aqi=no`
     )
       .then((res) => res.json())
       .then((data) => {
