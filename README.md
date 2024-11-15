@@ -1,40 +1,27 @@
-# Welcome to Remix!
+# Remix Weather App
 
-- 📖 [Remix docs](https://remix.run/docs)
+This is a weather application built with Remix. It fetches weather data and displays it based on user input.
 
-## Development
+## Prerequisites
 
-Run the dev server:
+Before you start, ensure you have the following installed:
 
-```shellscript
+- Node.js (v14 or higher)
+- MongoDB (or access to a MongoDB cluster)
+- Git (optional, if you want to clone the repo)
+
+## Getting Started
+
+Follow the steps below to set up and run the application locally.
+
+### 1. Clone the Repository
+
+If you haven't already cloned the repository, you can do so by running the following command:
+
+npm install
+
 npm run dev
-```
 
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+```bash
+git clone <repository_url>
+cd <repository_name>
